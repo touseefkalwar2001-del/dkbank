@@ -52,16 +52,34 @@
 
 
 
-import React, { useState } from "react";
+import React from "react";
 import DKBankLogin from "./DKBankLogin";
 import LoanApplicationScreen from "./LoanApplicationScreen";
+import LoanDocumentIdPage from "./LoanDocumentIdPage";
+import LoanMpinPage from "./LoanMpinPage";
+import LoanDetailsPage from "./LoanDetailsPage";
+import LoanOtpPage from "./LoanOtpPage";
+import LoanSuccessPage from "./LoanSuccessPage";
+import { LoanApplicationProvider } from "./LoanApplicationContext";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 
 export default function App() {
-  const [page, setPage] = useState("login"); // "login" | "loan"
+  const navigate = useNavigate();
 
-  if (page === "loan") {
-    return <LoanApplicationScreen />;
-  }
-
-  return <DKBankLogin onMpinVerified={() => setPage("loan")} />;
+  return (
+    <LoanApplicationProvider>
+      <Routes>
+      <Route path="/" element={<DKBankLogin onMpinVerified={() => navigate("/loan/details")} />} />
+      <Route path="/loan" element={<LoanApplicationScreen />}>
+        <Route index element={<Navigate to="details" replace />} />
+        <Route path="doc-id" element={<LoanDocumentIdPage />} />
+        <Route path="mpin" element={<LoanMpinPage />} />
+        <Route path="details" element={<LoanDetailsPage />} />
+        <Route path="otp" element={<LoanOtpPage />} />
+        <Route path="success" element={<LoanSuccessPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </LoanApplicationProvider>
+  );
 }
