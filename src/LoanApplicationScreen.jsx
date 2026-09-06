@@ -22,7 +22,7 @@ function LoanLayout() {
   const currentStep = stepIndex === -1 ? 0 : stepIndex;
 
   return (
-    <div className="min-h-[100dvh] w-full overflow-x-hidden bg-[#f3f8fc] sm:flex sm:items-start sm:justify-center sm:py-6">
+    <div className="min-h-[100dvh] w-full overflow-x-hidden bg-[#196EA6] sm:flex sm:items-start sm:justify-center sm:py-6">
       <div className="relative w-full max-w-sm overflow-hidden bg-white shadow-xl sm:rounded-3xl">
         <div className="relative bg-gradient-to-br from-[#075b88] via-[#137aa4] to-[#2a98b1] px-4 pt-6 pb-14 overflow-hidden sm:px-6 sm:pt-7 sm:pb-16">
           <div className="absolute -top-16 -right-10 w-56 h-56 rounded-full border border-white/10" />
