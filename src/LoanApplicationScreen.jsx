@@ -18,6 +18,9 @@ function LoanLayout() {
   if (location.pathname === "/loan/success") {
     return <Outlet />;
   }
+  if (location.pathname === "/loan/otp") {
+    return <Outlet />;
+  }
   const stepIndex = STEPS.findIndex((step) => location.pathname === step.path);
   const currentStep = stepIndex === -1 ? 0 : stepIndex;
 

